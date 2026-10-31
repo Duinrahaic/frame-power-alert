@@ -1,0 +1,13 @@
+[Unit]
+Description=Frame Power Alert (pill in view when the Frame stops charging)
+After=steamvr.service
+PartOf=steamvr.service
+
+[Service]
+ExecStart=%h/.local/bin/frame-power-alert
+# Come back after a SteamVR-only restart too; PartOf stops it with steamvr.service.
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=steamvr.service
