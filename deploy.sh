@@ -1,10 +1,11 @@
 #!/bin/sh
 # Builds frame-power-alert on the Steam Frame and installs it as a SteamVR-bound user service.
 # Usage: ./deploy.sh [preview]   — "preview" also renders PNGs of each state into ./preview/
+# FRAME is the SSH destination (default "steamframe"); FRAME_SSH_OPTS adds options to every ssh/scp call.
 set -eu
 cd "$(dirname "$0")"
-SSH_OPTS="-o HostName=192.168.1.115 -o HostKeyAlias=frame.tailef6c1.ts.net"
-REMOTE=steamframe
+SSH_OPTS="${FRAME_SSH_OPTS:-}"
+REMOTE="${FRAME:-steamframe}"
 DIR=frame-power-alert
 
 ssh $SSH_OPTS $REMOTE "mkdir -p ~/$DIR/src ~/$DIR/tools ~/$DIR/vendor"
