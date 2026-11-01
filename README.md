@@ -30,21 +30,12 @@ A SteamVR overlay that alerts you when your Steam Frame stops charging.
 ## Key Features
 
 <ul style="font-size: 16px;">
-  <li>🔌 <strong>Charge Monitoring</strong> - Alerts when the USB-C input goes offline or drops below 9 V, and again when charging resumes.</li>
-  <li>🪫 <strong>Low Battery Warning</strong> - Alerts when the headset battery drops to 25%.</li>
-  <li>⚡ <strong>Fast Detection</strong> - Checks power four times a second and alerts within about half a second of a change.</li>
-  <li>👓 <strong>In-Headset Overlay</strong> - Shows below your view with the battery level and a ring that counts down until it hides.</li>
-  <li>🔔 <strong>Audio Cue</strong> - Plays a short chime with each alert.</li>
-  <li>🚀 <strong>Runs on the Frame</strong> - Starts and stops with SteamVR. No PC software required.</li>
+  <li>🔌 <strong>Charge Monitoring</strong> - Notifies you when the headset stops or resumes charging.</li>
+  <li>🪫 <strong>Low Battery Warning</strong> - Warns you before the headset battery runs out.</li>
+  <li>👓 <strong>In-Headset Notifications</strong> - Alerts appear in view over any SteamVR app.</li>
+  <li>🔔 <strong>Audio Cues</strong> - Each alert has its own sound.</li>
+  <li>🚀 <strong>Standalone</strong> - Runs on the Frame itself alongside SteamVR. No PC software required.</li>
 </ul>
-
-| Alert        | Trigger                                     | Shown for |
-| ------------ | ------------------------------------------- | --------- |
-| Not charging | USB-C input goes offline or drops below 9 V | 10 s      |
-| Charging     | USB-C input returns at 9 V or above         | 4 s       |
-| Low battery  | Battery drops to 25% or below               | 10 s      |
-
-Only changes raise an alert. Nothing is shown for the state at startup.
 
 ## Pre-Requisites
 
@@ -96,6 +87,18 @@ Run on the Frame:
 To re-render the images in `docs/` after changing the design, run `./deploy.sh preview` from the deploy machine.
 
 ## Configuration
+
+### Default alerts
+
+| Alert        | Trigger                                     | Shown for |
+| ------------ | ------------------------------------------- | --------- |
+| Not charging | USB-C input goes offline or drops below 9 V | 10 s      |
+| Charging     | USB-C input returns at 9 V or above         | 4 s       |
+| Low battery  | Battery drops to 25% or below               | 10 s      |
+
+Alerts fire only when the state changes, never for the state at startup.
+
+### Where to change them
 
 | Setting                                  | Location                       |
 | ---------------------------------------- | ------------------------------ |
