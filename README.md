@@ -39,30 +39,36 @@ A SteamVR overlay that alerts you when your Steam Frame stops charging.
 
 ## Pre-Requisites
 
-- A Steam Frame with SSH access.
-- SteamVR installed on the Frame at `/opt/steamvr`.
-- `g++` and PipeWire's `pw-play` on the Frame (included with SteamOS).
-- A machine with `ssh`, `scp` and a POSIX shell to deploy from.
+- A Steam Frame with SteamVR installed.
+- `git`, `g++` and PipeWire's `pw-play` on the Frame.
 
 ## Installation
 
-Clone the repository and run the deploy script. It copies the sources to the Frame, builds them there and installs a
-systemd user service.
+Run on the Frame:
 
 ```sh
 git clone https://github.com/Duinrahaic/frame-power-alert.git
 cd frame-power-alert
-./deploy.sh
+./install.sh
 ```
 
-The script connects to the SSH host `steamframe` by default. To use a different host or extra SSH options:
+The alert service starts with SteamVR and restarts automatically after a crash.
 
-```sh
-FRAME=steamos@192.168.1.50 ./deploy.sh
-FRAME_SSH_OPTS="-o Port=2222" ./deploy.sh
-```
+### Installing from another machine
 
-The service starts with SteamVR and restarts automatically after a crash.
+To install over SSH from a PC instead:
+
+1. Enable SSH on the Frame and make sure you can connect with `ssh steamos@<frame-address>`.
+2. Clone the repository on the PC. Running the script needs a POSIX shell with `ssh` and `scp`, such as Git Bash on
+   Windows.
+3. Run the deploy script, which copies the project to `~/frame-power-alert` on the Frame and runs `install.sh` there:
+
+   ```sh
+   FRAME=steamos@<frame-address> ./deploy.sh
+   ```
+
+`FRAME` defaults to the SSH host `steamframe`. `FRAME_SSH_OPTS` passes extra options to every `ssh` and `scp` call,
+for example `FRAME_SSH_OPTS="-o Port=2222"`.
 
 ### Uninstall
 
@@ -71,20 +77,22 @@ Run on the Frame:
 ```sh
 systemctl --user disable --now frame-power-alert
 rm ~/.local/bin/frame-power-alert ~/.config/systemd/user/frame-power-alert.service
-rm -r ~/frame-power-alert
 ```
+
+Then delete the cloned folder (`~/frame-power-alert` if installed from another machine).
 
 ## Usage
 
 Run on the Frame:
 
-| Task                       | Command                                     |
-| -------------------------- | ------------------------------------------- |
-| Play each alert once       | `~/.local/bin/frame-power-alert --demo`     |
-| Check the service          | `systemctl --user status frame-power-alert` |
-| View logs                  | `journalctl --user -u frame-power-alert`    |
+| Task                 | Command                                     |
+| -------------------- | ------------------------------------------- |
+| Play each alert once | `~/.local/bin/frame-power-alert --demo`     |
+| Check the service    | `systemctl --user status frame-power-alert` |
+| View logs            | `journalctl --user -u frame-power-alert`    |
 
-To re-render the images in `docs/` after changing the design, run `./deploy.sh preview` from the deploy machine.
+To re-render the images in `docs/` after changing the design, run `./install.sh preview`, or `./deploy.sh preview`
+from another machine.
 
 ## Configuration
 
@@ -106,7 +114,7 @@ Alerts fire only when the state changes, never for the state at startup.
 | Colors, labels and icons                 | `styleFor` in `src/pill.h`     |
 | Chime notes                              | `main` in `src/main.cpp`       |
 
-Run `./deploy.sh` again after making changes.
+Run `./install.sh` (or `./deploy.sh`) again after making changes.
 
 ## Contact & Support
 
