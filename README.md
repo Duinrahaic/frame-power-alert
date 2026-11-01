@@ -1,98 +1,81 @@
-# frame-power-alert
+<div align="center">
 
-A SteamVR overlay for the Steam Frame that shows a notification when the headset stops or starts charging over
-USB-C, or when its battery runs low.
+# Frame Power Alert
 
-## Description
+A SteamVR overlay that alerts you when your Steam Frame stops charging.
 
-The program runs on the Frame as a background OpenVR application. It checks the USB-C input and battery state four
-times a second and shows a notification below the center of view whenever the state changes.
+<img src="docs/not-charging.png" width="32%" alt="Not charging alert">
+<img src="docs/low-battery.png" width="32%" alt="Low battery alert">
+<img src="docs/charging.png" width="32%" alt="Charging alert">
 
-| Alert        | Trigger                                    | Color | Shown for |
-| ------------ | ------------------------------------------ | ----- | --------- |
-| Not charging | USB-C input goes offline or drops below 9 V | Red   | 10 s      |
-| Charging     | USB-C input returns at 9 V or above        | Green | 4 s       |
-| Low battery  | Battery drops to 25% or below              | Amber | 10 s      |
+</div>
 
-- Only transitions raise an alert. Nothing is shown for the state at startup.
-- A power change must hold for three consecutive reads (about 0.5 s) before it counts.
-- Each notification has a status icon, the battery percentage and a capacity bar.
-- A ring around the icon counts down until the notification hides.
-- Each alert plays a short two-note chime through PipeWire.
+<div align="center">
 
-Power state is read from sysfs:
+[Key Features](#key-features) •
+[Pre-Requisites](#pre-requisites) •
+[Installation](#installation) •
+[Usage](#usage) •
+[Configuration](#configuration) •
+[Contact & Support](#contact--support) •
+[Other Projects](#other-projects) •
+[Mentions](#mentions) •
+[License](#license)
 
-- USB-C input: `/sys/class/power_supply/tcpm-source-psy-*` (`online`, `voltage_now`)
-- Battery: `/sys/class/power_supply/max1720x_bat*` (`capacity`)
+</div>
 
-## Requirements
+<br>
+<br>
 
-On the Frame:
+## Key Features
 
-- SteamOS with SteamVR installed at `/opt/steamvr` (provides `libopenvr_api.so`)
-- `g++` with C++17 support
-- PipeWire's `pw-play`
-- The Noto Sans Bold font at `/usr/share/fonts/noto/NotoSans-Bold.ttf`
+<ul style="font-size: 16px;">
+  <li>🔌 <strong>Charge Monitoring</strong> - Alerts when the USB-C input goes offline or drops below 9 V, and again when charging resumes.</li>
+  <li>🪫 <strong>Low Battery Warning</strong> - Alerts when the headset battery drops to 25%.</li>
+  <li>⚡ <strong>Fast Detection</strong> - Checks power four times a second and alerts within about half a second of a change.</li>
+  <li>👓 <strong>In-Headset Overlay</strong> - Shows below your view with the battery level and a ring that counts down until it hides.</li>
+  <li>🔔 <strong>Audio Cue</strong> - Plays a short chime with each alert.</li>
+  <li>🚀 <strong>Runs on the Frame</strong> - Starts and stops with SteamVR. No PC software required.</li>
+</ul>
 
-On the machine you deploy from:
+| Alert        | Trigger                                     | Shown for |
+| ------------ | ------------------------------------------- | --------- |
+| Not charging | USB-C input goes offline or drops below 9 V | 10 s      |
+| Charging     | USB-C input returns at 9 V or above         | 4 s       |
+| Low battery  | Battery drops to 25% or below               | 10 s      |
 
-- A POSIX shell with `ssh` and `scp`
-- SSH access to the Frame
+Only changes raise an alert. Nothing is shown for the state at startup.
+
+## Pre-Requisites
+
+- A Steam Frame with SSH access.
+- SteamVR installed on the Frame at `/opt/steamvr`.
+- `g++` and PipeWire's `pw-play` on the Frame (included with SteamOS).
+- A machine with `ssh`, `scp` and a POSIX shell to deploy from.
 
 ## Installation
 
-`deploy.sh` copies the sources to the Frame, builds them there and installs a systemd user service.
+Clone the repository and run the deploy script. It copies the sources to the Frame, builds them there and installs a
+systemd user service.
 
 ```sh
+git clone https://github.com/Duinrahaic/frame-power-alert.git
+cd frame-power-alert
 ./deploy.sh
 ```
 
-| Variable         | Default      | Purpose                                   |
-| ---------------- | ------------ | ----------------------------------------- |
-| `FRAME`          | `steamframe` | SSH destination of the Frame              |
-| `FRAME_SSH_OPTS` | (empty)      | Extra options passed to every `ssh`/`scp` |
-
-Example:
+The script connects to the SSH host `steamframe` by default. To use a different host or extra SSH options:
 
 ```sh
 FRAME=steamos@192.168.1.50 ./deploy.sh
+FRAME_SSH_OPTS="-o Port=2222" ./deploy.sh
 ```
 
-The script installs:
+The service starts with SteamVR and restarts automatically after a crash.
 
-- `~/.local/bin/frame-power-alert`
-- `~/.config/systemd/user/frame-power-alert.service`
+### Uninstall
 
-The service is enabled under `steamvr.service`. It starts and stops with SteamVR and restarts after a crash.
-
-## Usage
-
-These commands run on the Frame.
-
-| Task                                    | Command                                            |
-| --------------------------------------- | -------------------------------------------------- |
-| Play each alert once in the headset     | `~/.local/bin/frame-power-alert --demo`            |
-| Check the service                       | `systemctl --user status frame-power-alert`        |
-| View logs                               | `journalctl --user -u frame-power-alert`           |
-
-The demo runs alongside the service and exits when done.
-
-To render each alert to a PNG without a headset, run this from the deploy machine:
-
-```sh
-./deploy.sh preview
-```
-
-The images are written to `preview/`.
-
-## Configuration
-
-Thresholds, timings, size and placement are constants at the top of `src/main.cpp`. Colors, labels and icons are
-set in `styleFor` in `src/pill.h`. Run `./deploy.sh` again after changing them.
-
-## Uninstall
-
-On the Frame:
+Run on the Frame:
 
 ```sh
 systemctl --user disable --now frame-power-alert
@@ -100,21 +83,53 @@ rm ~/.local/bin/frame-power-alert ~/.config/systemd/user/frame-power-alert.servi
 rm -r ~/frame-power-alert
 ```
 
-## Project layout
+## Usage
 
-| Path                        | Contents                                                 |
-| --------------------------- | -------------------------------------------------------- |
-| `src/main.cpp`              | Power polling, alert logic, overlay placement, animation |
-| `src/pill.h`                | Software renderer for the notification and ring layers   |
-| `src/icons.h`               | Lucide icon paths                                        |
-| `src/chime.h`               | Chime synthesis and playback                             |
-| `tools/preview.cpp`         | Renders each alert to a PNG                              |
-| `frame-power-alert.service` | systemd user unit                                        |
-| `deploy.sh`                 | Build and install script                                 |
-| `vendor/`                   | Third-party headers                                      |
+Run on the Frame:
 
-## Third-party code
+| Task                       | Command                                     |
+| -------------------------- | ------------------------------------------- |
+| Play each alert once       | `~/.local/bin/frame-power-alert --demo`     |
+| Check the service          | `systemctl --user status frame-power-alert` |
+| View logs                  | `journalctl --user -u frame-power-alert`    |
 
-- [OpenVR](https://github.com/ValveSoftware/openvr) (`vendor/openvr.h`), BSD 3-Clause
-- [stb_truetype and stb_image_write](https://github.com/nothings/stb) (`vendor/stb_*.h`), MIT or public domain
-- [Lucide](https://lucide.dev) icons (`src/icons.h`), ISC
+To re-render the images in `docs/` after changing the design, run `./deploy.sh preview` from the deploy machine.
+
+## Configuration
+
+| Setting                                  | Location                       |
+| ---------------------------------------- | ------------------------------ |
+| Thresholds, timings, size and placement  | Constants at the top of `src/main.cpp` |
+| Colors, labels and icons                 | `styleFor` in `src/pill.h`     |
+| Chime notes                              | `main` in `src/main.cpp`       |
+
+Run `./deploy.sh` again after making changes.
+
+## Contact & Support
+
+For additional support, please consider joining my Discord server [here](https://discord.gg/aZQfy6H9fA).
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-F16061?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/Duinrahaic)
+[![X](https://img.shields.io/badge/X-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/Duinrahaic)
+[![Bluesky](https://img.shields.io/badge/Bluesky-00A0DC?style=flat-square&logo=bluesky&logoColor=white)](https://bsky.app/profile/duinrahaic.app)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Duinrahaic)
+
+## Other Projects
+
+- [FitOSC](https://github.com/Duinrahaic/FitOSC) - An Avatar Treadmill Controller for VRChat.
+- [VRCDollyManager](https://github.com/Duinrahaic/VRCDollyManager) - A Dolly Manager for VRChat.
+- [VRCPictureToClipboard](https://github.com/Duinrahaic/VRCPictureToClipboard) - A tool to copy the latest picture from VRChat to your clipboard.
+
+## Mentions
+
+Frame Power Alert is built on the shoulders of these open-source libraries:
+
+- [OpenVR SDK](https://github.com/ValveSoftware/openvr) - Valve's VR hardware access SDK.
+- [stb](https://github.com/nothings/stb) - Single-file libraries for font rendering and PNG output.
+- [Lucide Icons](https://github.com/lucide-icons/lucide) - Open-source icon toolkit.
+
+## License
+
+Frame Power Alert is licensed under the [MIT License](LICENSE). Modify and distribute as needed.
+
+---

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Builds frame-power-alert on the Steam Frame and installs it as a SteamVR-bound user service.
-# Usage: ./deploy.sh [preview]   — "preview" also renders PNGs of each state into ./preview/
+# Usage: ./deploy.sh [preview]   — "preview" also renders each alert into ./docs/ for the README
 # FRAME is the SSH destination (default "steamframe"); FRAME_SSH_OPTS adds options to every ssh/scp call.
 set -eu
 cd "$(dirname "$0")"
@@ -24,9 +24,9 @@ ssh $SSH_OPTS $REMOTE "set -e; cd ~/$DIR
   systemctl --user restart frame-power-alert.service"
 
 if [ "${1:-}" = preview ]; then
-  ssh $SSH_OPTS $REMOTE "set -e; cd ~/$DIR; mkdir -p preview
+  ssh $SSH_OPTS $REMOTE "set -e; cd ~/$DIR; rm -rf preview; mkdir preview
     g++ -std=c++17 -O2 -Isrc -isystem vendor -o preview/preview tools/preview.cpp
     preview/preview /usr/share/fonts/noto/NotoSans-Bold.ttf preview"
-  mkdir -p preview
-  scp -q $SSH_OPTS "$REMOTE:$DIR/preview/*.png" preview/
+  mkdir -p docs
+  scp -q $SSH_OPTS "$REMOTE:$DIR/preview/*.png" docs/
 fi
