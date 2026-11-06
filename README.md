@@ -34,6 +34,8 @@ A SteamVR overlay that alerts you when your Steam Frame stops charging.
   <li>🪫 <strong>Low Battery Warning</strong> - Warns you before the headset battery runs out.</li>
   <li>👓 <strong>In-Headset Notifications</strong> - Alerts appear in view over any SteamVR app.</li>
   <li>🔔 <strong>Audio Cues</strong> - Each alert has its own sound.</li>
+  <li>🔕 <strong>Uninterrupted Play</strong> - Stops Steam's slow charger dialog from pulling you out of VR when you swap power sources.</li>
+  <li>🔄 <strong>Auto Updates</strong> - Installs the latest version each time SteamVR starts.</li>
   <li>🚀 <strong>Standalone</strong> - Runs on the Frame itself alongside SteamVR. No PC software required.</li>
 </ul>
 
@@ -52,7 +54,12 @@ cd frame-power-alert
 ./install.sh
 ```
 
-The alert service starts with SteamVR and restarts automatically after a crash.
+The alert service starts with SteamVR and restarts automatically after a crash. Each SteamVR start also pulls the
+latest version from git and reinstalls it if anything changed.
+
+Steam's slow charger dialog is removed from Steam's UI (`~/.local/share/Steam/steamui/sp.js`, backed up as `sp.js.orig`)
+and patched again whenever Steam updates. It takes effect the next time Steam starts. The dialog still opens from the
+battery entry in Quick Access.
 
 ### Installing from another machine
 
@@ -68,15 +75,17 @@ To install over SSH from a PC instead:
    ```
 
 `FRAME` defaults to the SSH host `steamframe`. `FRAME_SSH_OPTS` passes extra options to every `ssh` and `scp` call,
-for example `FRAME_SSH_OPTS="-o Port=2222"`.
+for example `FRAME_SSH_OPTS="-o Port=2222"`. Copies installed this way are not a git checkout, so they don't auto-update;
+run `deploy.sh` again to update.
 
 ### Uninstall
 
 Run on the Frame:
 
 ```sh
-systemctl --user disable --now frame-power-alert
-rm ~/.local/bin/frame-power-alert ~/.config/systemd/user/frame-power-alert.service
+systemctl --user disable --now frame-power-alert frame-power-alert-update frame-power-alert-steamui.path
+rm ~/.local/bin/frame-power-alert* ~/.config/systemd/user/frame-power-alert*
+mv ~/.local/share/Steam/steamui/sp.js.orig ~/.local/share/Steam/steamui/sp.js
 ```
 
 Then delete the cloned folder (`~/frame-power-alert` if installed from another machine).
@@ -85,11 +94,13 @@ Then delete the cloned folder (`~/frame-power-alert` if installed from another m
 
 Run on the Frame:
 
-| Task                 | Command                                     |
-| -------------------- | ------------------------------------------- |
-| Play each alert once | `~/.local/bin/frame-power-alert --demo`     |
-| Check the service    | `systemctl --user status frame-power-alert` |
-| View logs            | `journalctl --user -u frame-power-alert`    |
+| Task                 | Command                                           |
+| -------------------- | ------------------------------------------------- |
+| Play each alert once | `~/.local/bin/frame-power-alert --demo`           |
+| Check the service    | `systemctl --user status frame-power-alert`       |
+| View logs            | `journalctl --user -u frame-power-alert`          |
+| Update now           | `systemctl --user start frame-power-alert-update` |
+| View update logs     | `journalctl --user -u frame-power-alert-update`   |
 
 To re-render the images in `docs/` after changing the design, run `./install.sh preview`, or `./deploy.sh preview`
 from another machine.

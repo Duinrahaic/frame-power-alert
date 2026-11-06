@@ -1,0 +1,10 @@
+[Unit]
+Description=Frame Power Alert updater
+After=steamvr.service
+
+[Service]
+Type=oneshot
+ExecStart=@REPO@/tools/update.sh
+
+[Install]
+WantedBy=steamvr.service

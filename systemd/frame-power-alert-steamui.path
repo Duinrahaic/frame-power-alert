@@ -1,0 +1,8 @@
+[Unit]
+Description=Re-patch Steam's slow charger dialog after Steam updates
+
+[Path]
+PathChanged=%h/.local/share/Steam/steamui/sp.js
+
+[Install]
+WantedBy=default.target

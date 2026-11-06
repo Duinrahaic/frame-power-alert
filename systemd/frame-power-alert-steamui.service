@@ -1,0 +1,6 @@
+[Unit]
+Description=Frame Power Alert: stop Steam's slow charger dialog
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/frame-power-alert-steamui

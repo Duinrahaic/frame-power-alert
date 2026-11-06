@@ -9,7 +9,7 @@ REMOTE="${FRAME:-steamframe}"
 DIR=frame-power-alert
 
 ssh $SSH_OPTS $REMOTE "rm -rf ~/$DIR && mkdir -p ~/$DIR"
-scp -q -r $SSH_OPTS src tools vendor install.sh frame-power-alert.service $REMOTE:$DIR/
+scp -q -r $SSH_OPTS src tools vendor systemd install.sh $REMOTE:$DIR/
 ssh $SSH_OPTS $REMOTE "sh ~/$DIR/install.sh ${1:-}"
 
 if [ "${1:-}" = preview ]; then
