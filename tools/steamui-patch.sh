@@ -8,8 +8,16 @@ SP=$HOME/.local/share/Steam/steamui/sp.js
 CALL='[A-Za-z_$]+\.eACState==[A-Za-z_$]+\.[A-Za-z_$]+&&this\.ShowConnectedSlowDetails\(\),'
 
 if grep -qE "$CALL" "$SP"; then
+  # Steam restores the file if it was patched before: it is fighting the patch, so leave it alone.
+  if cmp -s "$SP" "$SP.orig"; then
+    echo "Steam restored $SP after it was patched; leaving it unpatched" >&2
+    exit 1
+  fi
   cp "$SP" "$SP.orig"
-  sed -i -E "s/$CALL//" "$SP"
+  # Blank the call with spaces of the same length: Steam verifies its files by size and re-downloads any that differ.
+  call=$(grep -oE "$CALL" "$SP")
+  blank=$(printf '%*s' ${#call} '')
+  sed -i -E "s/$CALL/$blank/" "$SP"
   echo "Removed the automatic slow charger dialog from $SP"
 elif grep -qF '&&this.ShowConnectedSlowDetails()' "$SP"; then
   echo "Steam's slow charger code changed; $SP was not patched" >&2
